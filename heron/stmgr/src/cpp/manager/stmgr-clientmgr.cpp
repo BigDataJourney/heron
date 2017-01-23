@@ -147,19 +147,15 @@ void StMgrClientMgr::StopBackPressureOnServer(const sp_string& _other_stmgr_id) 
   stream_manager_->StopBackPressureOnServer(_other_stmgr_id);
 }
 
-void StMgrClientMgr::SendStartBackPressureToUpstreamStMgrs(std::set<sp_string>& stmgrs) {
-  for (auto iter = stmgrs.begin(); iter != stmgrs.end(); ++iter) {
-    auto r = clients_.find(*iter);
-    if (r != clients_.end())
-      r->second->SendStartBackPressureMessage();
+void StMgrClientMgr::SendStartBackPressureToOtherStMgrs() {
+  for (auto iter = clients_.begin(); iter != clients_.end(); ++iter) {
+    iter->second->SendStartBackPressureMessage();
   }
 }
 
-void StMgrClientMgr::SendStopBackPressureToUpstreamStMgrs(std::set<sp_string>& stmgrs) {
-  for (auto iter = stmgrs.begin(); iter != stmgrs.end(); ++iter) {
-    auto r = clients_.find(*iter);
-    if (r != clients_.end())
-      r->second->SendStopBackPressureMessage();
+void StMgrClientMgr::SendStopBackPressureToOtherStMgrs() {
+  for (auto iter = clients_.begin(); iter != clients_.end(); ++iter) {
+    iter->second->SendStopBackPressureMessage();
   }
 }
 

@@ -18,7 +18,6 @@
 #define SRC_CPP_SVCS_STMGR_SRC_MANAGER_STMGR_CLIENTMGR_H_
 
 #include <map>
-#include <set>
 #include "proto/messages.h"
 #include "network/network.h"
 #include "basics/basics.h"
@@ -53,8 +52,8 @@ class StMgrClientMgr {
   void StopBackPressureOnServer(const sp_string& _other_stmgr_id);
   // Used by the server to tell the client to send the back pressure related
   // messages
-  void SendStartBackPressureToUpstreamStMgrs(std::set<sp_string>& stmgrs);
-  void SendStopBackPressureToUpstreamStMgrs(std::set<sp_string>& stmgrs);
+  void SendStartBackPressureToOtherStMgrs();
+  void SendStopBackPressureToOtherStMgrs();
   bool DidAnnounceBackPressure();
 
  private:

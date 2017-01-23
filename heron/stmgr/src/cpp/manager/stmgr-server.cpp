@@ -216,7 +216,7 @@ void StMgrServer::HandleConnectionClose(Connection* _conn, NetworkErrorCode) {
     heron::common::TimeSpentMetric* instance_metric = instance_metric_map_[GetInstanceName(_conn)];
     instance_metric->Stop();
     if (remote_ends_who_caused_back_pressure_.empty()) {
-      SendStopBackPressureToUpstreamStMgrs();
+      SendStopBackPressureToOtherStMgrs();
     }
   }
   // Note: Connections to other stream managers get handled in StmgrClient
@@ -474,7 +474,7 @@ void StMgrServer::StartBackPressureConnectionCb(Connection* _connection) {
   CHECK_NE(instance_name, "");
 
   if (remote_ends_who_caused_back_pressure_.empty()) {
-    SendStartBackPressureToUpstreamStMgrs();
+    SendStartBackPressureToOtherStMgrs();
     back_pressure_metric_initiated_->Start();
   }
 
@@ -503,7 +503,7 @@ void StMgrServer::StopBackPressureConnectionCb(Connection* _connection) {
   instance_metric->Stop();
 
   if (remote_ends_who_caused_back_pressure_.empty()) {
-    SendStopBackPressureToUpstreamStMgrs();
+    SendStopBackPressureToOtherStMgrs();
     back_pressure_metric_initiated_->Stop();
   }
   LOG(INFO) << "We don't observe back pressure now on sending data to instance " << instance_name;
@@ -512,7 +512,7 @@ void StMgrServer::StopBackPressureConnectionCb(Connection* _connection) {
 
 void StMgrServer::StartBackPressureClientCb(const sp_string& _other_stmgr_id) {
   if (remote_ends_who_caused_back_pressure_.empty()) {
-    SendStartBackPressureToUpstreamStMgrs();
+    SendStartBackPressureToOtherStMgrs();
     back_pressure_metric_initiated_->Start();
   }
   remote_ends_who_caused_back_pressure_.insert(_other_stmgr_id);
@@ -527,7 +527,7 @@ void StMgrServer::StopBackPressureClientCb(const sp_string& _other_stmgr_id) {
   remote_ends_who_caused_back_pressure_.erase(_other_stmgr_id);
 
   if (remote_ends_who_caused_back_pressure_.empty()) {
-    SendStopBackPressureToUpstreamStMgrs();
+    SendStopBackPressureToOtherStMgrs();
     back_pressure_metric_initiated_->Stop();
   }
   LOG(INFO) << "We don't observe back pressure now on sending data to remote "
@@ -583,16 +583,16 @@ void StMgrServer::HandleStopBackPressureMessage(Connection* _conn,
   release(_message);
 }
 
-void StMgrServer::SendStartBackPressureToUpstreamStMgrs() {
-  LOG(INFO) << "Sending start back pressure notification to upstream "
+void StMgrServer::SendStartBackPressureToOtherStMgrs() {
+  LOG(INFO) << "Sending start back pressure notification to all other "
             << "stream managers";
-  stmgr_->SendStartBackPressureToUpstreamStMgrs();
+  stmgr_->SendStartBackPressureToOtherStMgrs();
 }
 
-void StMgrServer::SendStopBackPressureToUpstreamStMgrs() {
-  LOG(INFO) << "Sending stop back pressure notification to upstream "
+void StMgrServer::SendStopBackPressureToOtherStMgrs() {
+  LOG(INFO) << "Sending stop back pressure notification to all other "
             << "stream managers";
-  stmgr_->SendStopBackPressureToUpstreamStMgrs();
+  stmgr_->SendStopBackPressureToOtherStMgrs();
 }
 
 void StMgrServer::StartBackPressureOnInstances() {

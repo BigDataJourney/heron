@@ -97,8 +97,8 @@ class StMgrServer : public Server {
                                       proto::stmgr::StartBackPressureMessage* _message);
   void HandleStopBackPressureMessage(Connection* _conn,
                                      proto::stmgr::StopBackPressureMessage* _message);
-  void SendStartBackPressureToUpstreamStMgrs();
-  void SendStopBackPressureToUpstreamStMgrs();
+  void SendStartBackPressureToOtherStMgrs();
+  void SendStopBackPressureToOtherStMgrs();
 
   // Back pressure related connection callbacks
   // Do back pressure

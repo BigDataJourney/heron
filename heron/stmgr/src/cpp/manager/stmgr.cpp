@@ -378,7 +378,7 @@ void StMgr::NewPhysicalPlan(proto::system::PhysicalPlan* _pplan) {
     PopulateStreamConsumers(_pplan->mutable_topology(), component_to_task_ids);
     PopulateXorManagers(_pplan->topology(), ExtractTopologyTimeout(_pplan->topology()),
                         component_to_task_ids);
-    PopulateUpstreamStmgrs(_pplan, upstream_stmgrs_);
+    PopulateUpstreamStmgrs(_pplan);
   }
 
   delete pplan_;
@@ -468,57 +468,36 @@ void StMgr::PopulateXorManagers(
   xor_mgrs_ = new XorManager(eventLoop_, _message_timeout, all_spout_tasks);
 }
 
-void StMgr::PopulateUpstreamStmgrs(proto::system::PhysicalPlan* _pplan,
-                                   std::set<sp_string>& _upstreams) {
+void StMgr::PopulateUpstreamStmgrs(proto::system::PhysicalPlan* _pplan) {
   proto::api::Topology* topology = _pplan->mutable_topology();
   // Build a graph with components
-  std::map<sp_string, std::vector<sp_string>> mapping;
+  std::unordered_map<sp_string, std::vector<sp_string>> components_mapping;
   for (sp_int32 i = 0; i < topology->bolts_size(); ++i) {
     const sp_string& component_name = topology->bolts(i).comp().name();
-    mapping[component_name] = {};
+    components_mapping[component_name] = {};
     for (sp_int32 j = 0; j < topology->bolts(i).inputs_size(); ++j) {
       const proto::api::InputStream& is = topology->bolts(i).inputs(j);
-      mapping[component_name].push_back(is.stream().component_name());
+      components_mapping[component_name].push_back(is.stream().component_name());
       LOG(INFO) << component_name << " <= " << is.stream().component_name();
     }
   }
 
-  // Build a component name to stmgr id mapping
-  std::map<sp_string, sp_string> component_to_stmgr_id;
+  // Build a component name to task id mapping
+  std::unordered_map<sp_string, sp_string> component_to_task_id;
   for (sp_int32 i = 0; i < _pplan->instances_size(); ++i) {
     const sp_string& component_name = _pplan->instances(i).info().component_name();
-    component_to_stmgr_id[component_name] = _pplan->instances(i).stmgr_id();
-    LOG(INFO) << component_name << " = " << _pplan->instances(i).stmgr_id();
+    component_to_task_id[component_name] = _pplan->instances(i).info().task_id();
+    LOG(INFO) << component_name << " = " << _pplan->instances(i).info().task_id();
   }
 
-  // Convert the above graph to stmgr ids
-  std::map<sp_string, std::vector<sp_string>> stmgrs_mapping;
-  for (auto it = mapping.begin(); it != mapping.end(); it++) {
-    sp_string stmgr_key = component_to_stmgr_id[it->first];
-    stmgrs_mapping[stmgr_key] = {};
+  // Convert the above graph to task ids
+  for (auto it = components_mapping.begin(); it != components_mapping.end(); it++) {
+    sp_string task_id = component_to_task_id[it->first];
+    tasks_mapping_[task_id] = {};
     for (auto s = it->second.begin(); s != it->second.end(); s++) {
-      stmgrs_mapping[stmgr_key].push_back(component_to_stmgr_id[*s]);
-      LOG(INFO) << stmgr_key << " <= " << component_to_stmgr_id[*s];
+      tasks_mapping_[task_id].push_back(component_to_task_id[*s]);
+      LOG(INFO) << task_id << " <= " << component_to_task_id[*s];
     }
-  }
-
-  // do DFS to build the upstream stmgr id's
-  std::stack<sp_string> s;
-  s.push(stmgr_id_);
-
-  while (!s.empty()) {
-    sp_string cur = s.top();
-    s.pop();
-    if (_upstreams.find(cur) != _upstreams.end())
-      continue;
-    _upstreams.insert(cur);
-    for (auto it = stmgrs_mapping[cur].begin(); it != stmgrs_mapping[cur].end(); it++) {
-      s.push(*it);
-    }
-  }
-
-  for (auto it = _upstreams.begin(); it != _upstreams.end(); it++) {
-    LOG(INFO) << "upstream stmgrs: " << *it;
   }
 }
 
@@ -721,12 +700,12 @@ void StMgr::StopBackPressureOnServer(const sp_string& _other_stmgr_id) {
   server_->StopBackPressureClientCb(_other_stmgr_id);
 }
 
-void StMgr::SendStartBackPressureToUpstreamStMgrs() {
-  clientmgr_->SendStartBackPressureToUpstreamStMgrs(upstream_stmgrs_);
+void StMgr::SendStartBackPressureToOtherStMgrs() {
+  clientmgr_->SendStartBackPressureToOtherStMgrs();
 }
 
-void StMgr::SendStopBackPressureToUpstreamStMgrs() {
-  clientmgr_->SendStopBackPressureToUpstreamStMgrs(upstream_stmgrs_);
+void StMgr::SendStopBackPressureToOtherStMgrs() {
+  clientmgr_->SendStopBackPressureToOtherStMgrs();
 }
 
 }  // namespace stmgr
