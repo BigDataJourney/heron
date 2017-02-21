@@ -25,6 +25,7 @@
 #include <chrono>
 #include <typeindex>
 #include <set>
+#include <unordered_set>
 #include "proto/messages.h"
 #include "network/network.h"
 #include "basics/basics.h"
@@ -77,6 +78,9 @@ class StMgr {
   void SendStopBackPressureToOtherStMgrs(const sp_string& _task_id);
   void StartTMasterClient();
   bool DidAnnounceBackPressure();
+  std::unordered_set<sp_string> GetUpstreamInstances(const sp_string& _task_id) {
+    return tasks_mapping_[_task_id];
+  }
 
  private:
   void OnTMasterLocationFetch(proto::tmaster::TMasterLocation* _tmaster, proto::system::StatusCode);
@@ -134,7 +138,7 @@ class StMgr {
   // map of <component, streamid> to its consumers
   std::unordered_map<std::pair<sp_string, sp_string>, StreamConsumers*> stream_consumers_;
   // The graph of all the tasks
-  std::unordered_map<sp_string, std::vector<sp_string>> tasks_mapping_;
+  std::unordered_map<sp_string, std::unordered_set<sp_string>> tasks_mapping_;
   // xor managers
   XorManager* xor_mgrs_;
   // Tuple Cache to optimize message building

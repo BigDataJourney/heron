@@ -109,9 +109,9 @@ class StMgrServer : public Server {
   void StopBackPressureConnectionCb(Connection* _connection);
 
   // Can we free the back pressure on the instances?
-  void AttemptStopBackPressureFromInstances();
+  void AttemptStopBackPressureFromInstances(const sp_string& _task_id);
   // Start back pressure on the instances
-  void StartBackPressureOnInstances();
+  void StartBackPressureOnInstances(const sp_string& _task_id);
 
   // Compute the LocalSpouts from Physical Plan
   void ComputeLocalSpouts(const proto::system::PhysicalPlan& _pplan);

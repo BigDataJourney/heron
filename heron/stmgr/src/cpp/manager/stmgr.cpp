@@ -495,7 +495,7 @@ void StMgr::PopulateUpstreamStmgrs(proto::system::PhysicalPlan* _pplan) {
     sp_string task_id = component_to_task_id[it->first];
     tasks_mapping_[task_id] = {};
     for (auto s = it->second.begin(); s != it->second.end(); s++) {
-      tasks_mapping_[task_id].push_back(component_to_task_id[*s]);
+      tasks_mapping_[task_id].insert(component_to_task_id[*s]);
       LOG(INFO) << task_id << " <= " << component_to_task_id[*s];
     }
   }
