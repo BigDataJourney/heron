@@ -24,7 +24,6 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include <stack>
 #include <set>
 #include "manager/stmgr-clientmgr.h"
 #include "manager/stmgr-server.h"
@@ -706,6 +705,20 @@ void StMgr::SendStartBackPressureToOtherStMgrs(const sp_string& _task_id) {
 
 void StMgr::SendStopBackPressureToOtherStMgrs(const sp_string& _task_id) {
   clientmgr_->SendStopBackPressureToOtherStMgrs(_task_id);
+}
+
+void StMgr::_GetUpstreamInstances(const sp_string& _task_id,
+                                  std::unordered_set<sp_string>& result) {
+  for (auto& i : tasks_mapping_[_task_id]) {
+    result.insert(i);
+    _GetUpstreamInstances(i, result);
+  }
+}
+
+std::unordered_set<sp_string> StMgr::GetUpstreamInstances(const sp_string& _task_id) {
+  std::unordered_set<sp_string> result;
+  _GetUpstreamInstances(_task_id, result);
+  return result;
 }
 
 }  // namespace stmgr

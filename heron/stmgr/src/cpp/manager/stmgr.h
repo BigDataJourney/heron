@@ -78,11 +78,10 @@ class StMgr {
   void SendStopBackPressureToOtherStMgrs(const sp_string& _task_id);
   void StartTMasterClient();
   bool DidAnnounceBackPressure();
-  std::unordered_set<sp_string> GetUpstreamInstances(const sp_string& _task_id) {
-    return tasks_mapping_[_task_id];
-  }
+  std::unordered_set<sp_string> GetUpstreamInstances(const sp_string& _task_id);
 
  private:
+  void _GetUpstreamInstances(const sp_string& _task_id, std::unordered_set<sp_string>& result);
   void OnTMasterLocationFetch(proto::tmaster::TMasterLocation* _tmaster, proto::system::StatusCode);
   void FetchTMasterLocation();
   // A wrapper that calls FetchTMasterLocation. Needed for RegisterTimer
