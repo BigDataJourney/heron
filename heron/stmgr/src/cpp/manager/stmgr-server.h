@@ -68,6 +68,8 @@ class StMgrServer : public Server {
   // Gets all the Instance information
   void GetInstanceInfo(std::vector<proto::system::Instance*>& _return);
 
+  sp_string FindInstanceByStats();
+
   bool DidAnnounceBackPressure() { return !remote_ends_who_caused_back_pressure_.empty(); }
 
  protected:
@@ -97,8 +99,8 @@ class StMgrServer : public Server {
                                       proto::stmgr::StartBackPressureMessage* _message);
   void HandleStopBackPressureMessage(Connection* _conn,
                                      proto::stmgr::StopBackPressureMessage* _message);
-  void SendStartBackPressureToOtherStMgrs();
-  void SendStopBackPressureToOtherStMgrs();
+  void SendStartBackPressureToOtherStMgrs(const sp_string& _task_id);
+  void SendStopBackPressureToOtherStMgrs(const sp_string& _task_id);
 
   // Back pressure related connection callbacks
   // Do back pressure
@@ -142,6 +144,9 @@ class StMgrServer : public Server {
   // Once populated, will not change
   typedef std::map<sp_int32, InstanceData*> TaskIdInstanceDataMap;
   TaskIdInstanceDataMap instance_info_;
+
+  // Counters for instance traffic
+  std::unordered_map<sp_string, sp_int64> instance_stats_;
 
   // map of Instance_id/stmgrid to metric
   // Used for back pressure metrics

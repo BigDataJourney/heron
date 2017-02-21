@@ -216,7 +216,7 @@ void StMgrServer::HandleConnectionClose(Connection* _conn, NetworkErrorCode) {
     heron::common::TimeSpentMetric* instance_metric = instance_metric_map_[GetInstanceName(_conn)];
     instance_metric->Stop();
     if (remote_ends_who_caused_back_pressure_.empty()) {
-      SendStopBackPressureToOtherStMgrs();
+      SendStopBackPressureToOtherStMgrs(GetInstanceName(_conn));
     }
   }
   // Note: Connections to other stream managers get handled in StmgrClient
@@ -389,6 +389,17 @@ void StMgrServer::HandleTupleSetMessage(Connection* _conn,
   release(_message);
 }
 
+sp_string StMgrServer::GetInstanceName(Connection* _connection) {
+  // Indicate which instance component had back pressure
+  auto itr = active_instances_.find(_connection);
+  if (itr != active_instances_.end()) {
+    sp_int32 task_id = itr->second;
+    const sp_string& instance_id = instance_info_[task_id]->instance_->instance_id();
+    return instance_id;
+  }
+  return "";
+}
+
 void StMgrServer::SendToInstance2(sp_int32 _task_id,
                                   sp_int32 _byte_size,
                                   const sp_string _type_name,
@@ -403,6 +414,8 @@ void StMgrServer::SendToInstance2(sp_int32 _task_id,
 
   if (drop) {
   } else {
+    sp_string instance_name = GetInstanceName(iter->second->conn_);
+    instance_stats_[instance_name] += _byte_size;
     SendMessage(iter->second->conn_, _byte_size, _type_name, _message);
   }
 }
@@ -430,6 +443,8 @@ void StMgrServer::SendToInstance2(sp_int32 _task_id,
       stmgr_server_metrics_->scope(METRIC_FAIL_TUPLES_TO_INSTANCES)
           ->incr_by(_message.control().fails_size());
     }
+    sp_string instance_name = GetInstanceName(iter->second->conn_);
+    instance_stats_[instance_name] += _message.ByteSize();
     SendMessage(iter->second->conn_, _message);
   }
 }
@@ -454,17 +469,6 @@ void StMgrServer::ComputeLocalSpouts(const proto::system::PhysicalPlan& _pplan) 
   }
 }
 
-sp_string StMgrServer::GetInstanceName(Connection* _connection) {
-  // Indicate which instance component had back pressure
-  auto itr = active_instances_.find(_connection);
-  if (itr != active_instances_.end()) {
-    sp_int32 task_id = itr->second;
-    const sp_string& instance_id = instance_info_[task_id]->instance_->instance_id();
-    return instance_id;
-  }
-  return "";
-}
-
 void StMgrServer::StartBackPressureConnectionCb(Connection* _connection) {
   // The connection will notify us when we can stop the back pressure
   _connection->setCausedBackPressure();
@@ -474,7 +478,7 @@ void StMgrServer::StartBackPressureConnectionCb(Connection* _connection) {
   CHECK_NE(instance_name, "");
 
   if (remote_ends_who_caused_back_pressure_.empty()) {
-    SendStartBackPressureToOtherStMgrs();
+    SendStartBackPressureToOtherStMgrs(instance_name);
     back_pressure_metric_initiated_->Start();
   }
 
@@ -503,16 +507,28 @@ void StMgrServer::StopBackPressureConnectionCb(Connection* _connection) {
   instance_metric->Stop();
 
   if (remote_ends_who_caused_back_pressure_.empty()) {
-    SendStopBackPressureToOtherStMgrs();
+    SendStopBackPressureToOtherStMgrs(instance_name);
     back_pressure_metric_initiated_->Stop();
   }
   LOG(INFO) << "We don't observe back pressure now on sending data to instance " << instance_name;
   AttemptStopBackPressureFromInstances();
 }
 
+sp_string StMgrServer::FindInstanceByStats() {
+  sp_string instance;
+  sp_int64 max = 0;
+  for (auto iter = instance_stats_.begin(); iter!= instance_stats_.end(); iter++) {
+    if (iter->second > max) {
+      instance = iter->first;
+      max = iter->second;
+    }
+  }
+  return instance;
+}
+
 void StMgrServer::StartBackPressureClientCb(const sp_string& _other_stmgr_id) {
   if (remote_ends_who_caused_back_pressure_.empty()) {
-    SendStartBackPressureToOtherStMgrs();
+    SendStartBackPressureToOtherStMgrs(FindInstanceByStats());
     back_pressure_metric_initiated_->Start();
   }
   remote_ends_who_caused_back_pressure_.insert(_other_stmgr_id);
@@ -527,7 +543,7 @@ void StMgrServer::StopBackPressureClientCb(const sp_string& _other_stmgr_id) {
   remote_ends_who_caused_back_pressure_.erase(_other_stmgr_id);
 
   if (remote_ends_who_caused_back_pressure_.empty()) {
-    SendStopBackPressureToOtherStMgrs();
+    SendStopBackPressureToOtherStMgrs(FindInstanceByStats());
     back_pressure_metric_initiated_->Stop();
   }
   LOG(INFO) << "We don't observe back pressure now on sending data to remote "
@@ -583,16 +599,16 @@ void StMgrServer::HandleStopBackPressureMessage(Connection* _conn,
   release(_message);
 }
 
-void StMgrServer::SendStartBackPressureToOtherStMgrs() {
+void StMgrServer::SendStartBackPressureToOtherStMgrs(const sp_string& _task_id) {
   LOG(INFO) << "Sending start back pressure notification to all other "
             << "stream managers";
-  stmgr_->SendStartBackPressureToOtherStMgrs();
+  stmgr_->SendStartBackPressureToOtherStMgrs(_task_id);
 }
 
-void StMgrServer::SendStopBackPressureToOtherStMgrs() {
+void StMgrServer::SendStopBackPressureToOtherStMgrs(const sp_string& _task_id) {
   LOG(INFO) << "Sending stop back pressure notification to all other "
             << "stream managers";
-  stmgr_->SendStopBackPressureToOtherStMgrs();
+  stmgr_->SendStopBackPressureToOtherStMgrs(_task_id);
 }
 
 void StMgrServer::StartBackPressureOnInstances() {

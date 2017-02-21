@@ -73,8 +73,8 @@ class StMgr {
   virtual void StopBackPressureOnServer(const sp_string& _other_stmgr_id);
   // Used by the server to tell the client to send the back pressure related
   // messages
-  void SendStartBackPressureToOtherStMgrs();
-  void SendStopBackPressureToOtherStMgrs();
+  void SendStartBackPressureToOtherStMgrs(const sp_string& _task_id);
+  void SendStopBackPressureToOtherStMgrs(const sp_string& _task_id);
   void StartTMasterClient();
   bool DidAnnounceBackPressure();
 

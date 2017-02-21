@@ -700,12 +700,12 @@ void StMgr::StopBackPressureOnServer(const sp_string& _other_stmgr_id) {
   server_->StopBackPressureClientCb(_other_stmgr_id);
 }
 
-void StMgr::SendStartBackPressureToOtherStMgrs() {
-  clientmgr_->SendStartBackPressureToOtherStMgrs();
+void StMgr::SendStartBackPressureToOtherStMgrs(const sp_string& _task_id) {
+  clientmgr_->SendStartBackPressureToOtherStMgrs(_task_id);
 }
 
-void StMgr::SendStopBackPressureToOtherStMgrs() {
-  clientmgr_->SendStopBackPressureToOtherStMgrs();
+void StMgr::SendStopBackPressureToOtherStMgrs(const sp_string& _task_id) {
+  clientmgr_->SendStopBackPressureToOtherStMgrs(_task_id);
 }
 
 }  // namespace stmgr
