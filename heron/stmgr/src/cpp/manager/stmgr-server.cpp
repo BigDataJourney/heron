@@ -534,7 +534,8 @@ void StMgrServer::StartBackPressureClientCb(const sp_string& _other_stmgr_id) {
   }
   remote_ends_who_caused_back_pressure_.insert(_other_stmgr_id);
   LOG(INFO) << "We observe back pressure on sending data to remote stream manager "
-            << _other_stmgr_id;
+            << _other_stmgr_id
+            << " for task " << instance;
   StartBackPressureOnInstances(instance);
 }
 
@@ -550,7 +551,8 @@ void StMgrServer::StopBackPressureClientCb(const sp_string& _other_stmgr_id) {
   }
   LOG(INFO) << "We don't observe back pressure now on sending data to remote "
                "stream manager "
-            << _other_stmgr_id;
+            << _other_stmgr_id
+            << " for task " << instance;
   AttemptStopBackPressureFromInstances(instance);
 }
 
@@ -621,6 +623,8 @@ void StMgrServer::StartBackPressureOnInstances(const sp_int32 _task_id) {
 
     instances_under_back_pressure_ = true;
     auto upstream_instances = stmgr_->GetUpstreamInstances(_task_id);
+    for (auto i : upstream_instances)
+      LOG(INFO) << "Checking upstream tasks: " << i;
     // Put back pressure on all instances
     for (auto iiter = instance_info_.begin(); iiter != instance_info_.end(); ++iiter) {
       if (!iiter->second->conn_) continue;
@@ -640,6 +644,8 @@ void StMgrServer::AttemptStopBackPressureFromInstances(const sp_int32 _task_id) 
     instances_under_back_pressure_ = false;
 
     auto upstream_instances = stmgr_->GetUpstreamInstances(_task_id);
+    for (auto i : upstream_instances)
+      LOG(INFO) << "Checking upstream tasks: " << i;
     // Remove backpressure from all pipes
     for (auto iiter = instance_info_.begin(); iiter != instance_info_.end(); ++iiter) {
       if (!iiter->second->conn_) continue;
