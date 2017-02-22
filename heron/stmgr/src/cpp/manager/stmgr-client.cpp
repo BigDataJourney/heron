@@ -195,7 +195,7 @@ void StMgrClient::StopBackPressureConnectionCb(Connection* _connection) {
   client_manager_->StopBackPressureOnServer(other_stmgr_id_);
 }
 
-void StMgrClient::SendStartBackPressureMessage(const sp_string& _task_id) {
+void StMgrClient::SendStartBackPressureMessage(const sp_int32 _task_id) {
   REQID_Generator generator;
   REQID rand = generator.generate();
   // generator.generate(rand);
@@ -211,7 +211,7 @@ void StMgrClient::SendStartBackPressureMessage(const sp_string& _task_id) {
   release(message);
 }
 
-void StMgrClient::SendStopBackPressureMessage(const sp_string& _task_id) {
+void StMgrClient::SendStopBackPressureMessage(const sp_int32 _task_id) {
   REQID_Generator generator;
   REQID rand = generator.generate();
   // generator.generate(rand);

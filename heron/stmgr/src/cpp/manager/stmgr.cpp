@@ -482,7 +482,7 @@ void StMgr::PopulateUpstreamStmgrs(proto::system::PhysicalPlan* _pplan) {
   }
 
   // Build a component name to task id mapping
-  std::unordered_map<sp_string, sp_string> component_to_task_id;
+  std::unordered_map<sp_string, sp_int32> component_to_task_id;
   for (sp_int32 i = 0; i < _pplan->instances_size(); ++i) {
     const sp_string& component_name = _pplan->instances(i).info().component_name();
     component_to_task_id[component_name] = _pplan->instances(i).info().task_id();
@@ -491,7 +491,7 @@ void StMgr::PopulateUpstreamStmgrs(proto::system::PhysicalPlan* _pplan) {
 
   // Convert the above graph to task ids
   for (auto it = components_mapping.begin(); it != components_mapping.end(); it++) {
-    sp_string task_id = component_to_task_id[it->first];
+    sp_int32 task_id = component_to_task_id[it->first];
     tasks_mapping_[task_id] = {};
     for (auto s = it->second.begin(); s != it->second.end(); s++) {
       tasks_mapping_[task_id].insert(component_to_task_id[*s]);
@@ -699,24 +699,23 @@ void StMgr::StopBackPressureOnServer(const sp_string& _other_stmgr_id) {
   server_->StopBackPressureClientCb(_other_stmgr_id);
 }
 
-void StMgr::SendStartBackPressureToOtherStMgrs(const sp_string& _task_id) {
+void StMgr::SendStartBackPressureToOtherStMgrs(const sp_int32 _task_id) {
   clientmgr_->SendStartBackPressureToOtherStMgrs(_task_id);
 }
 
-void StMgr::SendStopBackPressureToOtherStMgrs(const sp_string& _task_id) {
+void StMgr::SendStopBackPressureToOtherStMgrs(const sp_int32 _task_id) {
   clientmgr_->SendStopBackPressureToOtherStMgrs(_task_id);
 }
 
-void StMgr::_GetUpstreamInstances(const sp_string& _task_id,
-                                  std::unordered_set<sp_string>& result) {
+void StMgr::_GetUpstreamInstances(const sp_int32 _task_id, std::unordered_set<sp_int32>& result) {
   for (auto& i : tasks_mapping_[_task_id]) {
     result.insert(i);
     _GetUpstreamInstances(i, result);
   }
 }
 
-std::unordered_set<sp_string> StMgr::GetUpstreamInstances(const sp_string& _task_id) {
-  std::unordered_set<sp_string> result;
+std::unordered_set<sp_int32> StMgr::GetUpstreamInstances(const sp_int32 _task_id) {
+  std::unordered_set<sp_int32> result;
   _GetUpstreamInstances(_task_id, result);
   return result;
 }

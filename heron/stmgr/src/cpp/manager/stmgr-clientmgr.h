@@ -52,10 +52,10 @@ class StMgrClientMgr {
   void StopBackPressureOnServer(const sp_string& _other_stmgr_id);
   // Used by the server to tell the client to send the back pressure related
   // messages
-  void SendStartBackPressureToOtherStMgrs(const sp_string& _task_id);
-  void SendStopBackPressureToOtherStMgrs(const sp_string& _task_id);
+  void SendStartBackPressureToOtherStMgrs(const sp_int32 _task_id);
+  void SendStopBackPressureToOtherStMgrs(const sp_int32 _task_id);
   bool DidAnnounceBackPressure();
-  sp_string LastBackPressureStarter() { return last_backpressure_starter_; }
+  sp_int32 LastBackPressureStarter() { return last_backpressure_starter_; }
 
  private:
   StMgrClient* CreateClient(const sp_string& _other_stmgr_id, const sp_string& _host_name,
@@ -73,7 +73,7 @@ class StMgrClientMgr {
   // Metrics
   heron::common::MetricsMgrSt* metrics_manager_client_;
   heron::common::MultiCountMetric* stmgr_clientmgr_metrics_;
-  sp_string last_backpressure_starter_;
+  sp_int32 last_backpressure_starter_;
 };
 
 }  // namespace stmgr

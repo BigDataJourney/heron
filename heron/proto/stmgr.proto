@@ -63,7 +63,7 @@ message StartBackPressureMessage {
   required string topology_id = 2;
   required string stmgr = 3;
   required string message_id = 4;
-  required string task_id = 5;
+  required int32 task_id = 5;
 }
 
 message StopBackPressureMessage {
@@ -71,7 +71,7 @@ message StopBackPressureMessage {
   required string topology_id = 2;
   required string stmgr = 3;
   required string message_id = 4;
-  required string task_id = 5;
+  required int32 task_id = 5;
 }
 
 // Tuples exchanged between stream managers and instances

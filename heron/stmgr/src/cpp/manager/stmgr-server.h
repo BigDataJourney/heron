@@ -68,7 +68,7 @@ class StMgrServer : public Server {
   // Gets all the Instance information
   void GetInstanceInfo(std::vector<proto::system::Instance*>& _return);
 
-  sp_string FindInstanceByStats();
+  sp_int32 FindInstanceByStats();
 
   bool DidAnnounceBackPressure() { return !remote_ends_who_caused_back_pressure_.empty(); }
 
@@ -99,8 +99,8 @@ class StMgrServer : public Server {
                                       proto::stmgr::StartBackPressureMessage* _message);
   void HandleStopBackPressureMessage(Connection* _conn,
                                      proto::stmgr::StopBackPressureMessage* _message);
-  void SendStartBackPressureToOtherStMgrs(const sp_string& _task_id);
-  void SendStopBackPressureToOtherStMgrs(const sp_string& _task_id);
+  void SendStartBackPressureToOtherStMgrs(const sp_int32 _task_id);
+  void SendStopBackPressureToOtherStMgrs(const sp_int32 _task_id);
 
   // Back pressure related connection callbacks
   // Do back pressure
@@ -109,9 +109,9 @@ class StMgrServer : public Server {
   void StopBackPressureConnectionCb(Connection* _connection);
 
   // Can we free the back pressure on the instances?
-  void AttemptStopBackPressureFromInstances(const sp_string& _task_id);
+  void AttemptStopBackPressureFromInstances(const sp_int32 _task_id);
   // Start back pressure on the instances
-  void StartBackPressureOnInstances(const sp_string& _task_id);
+  void StartBackPressureOnInstances(const sp_int32 _task_id);
 
   // Compute the LocalSpouts from Physical Plan
   void ComputeLocalSpouts(const proto::system::PhysicalPlan& _pplan);
@@ -146,7 +146,7 @@ class StMgrServer : public Server {
   TaskIdInstanceDataMap instance_info_;
 
   // Counters for instance traffic
-  std::unordered_map<sp_string, sp_int64> instance_stats_;
+  std::unordered_map<sp_int32, sp_int64> instance_stats_;
 
   // map of Instance_id/stmgrid to metric
   // Used for back pressure metrics

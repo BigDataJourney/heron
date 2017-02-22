@@ -74,14 +74,14 @@ class StMgr {
   virtual void StopBackPressureOnServer(const sp_string& _other_stmgr_id);
   // Used by the server to tell the client to send the back pressure related
   // messages
-  void SendStartBackPressureToOtherStMgrs(const sp_string& _task_id);
-  void SendStopBackPressureToOtherStMgrs(const sp_string& _task_id);
+  void SendStartBackPressureToOtherStMgrs(const sp_int32 _task_id);
+  void SendStopBackPressureToOtherStMgrs(const sp_int32 _task_id);
   void StartTMasterClient();
   bool DidAnnounceBackPressure();
-  std::unordered_set<sp_string> GetUpstreamInstances(const sp_string& _task_id);
+  std::unordered_set<sp_int32> GetUpstreamInstances(const sp_int32 _task_id);
 
  private:
-  void _GetUpstreamInstances(const sp_string& _task_id, std::unordered_set<sp_string>& result);
+  void _GetUpstreamInstances(const sp_int32 _task_id, std::unordered_set<sp_int32>& result);
   void OnTMasterLocationFetch(proto::tmaster::TMasterLocation* _tmaster, proto::system::StatusCode);
   void FetchTMasterLocation();
   // A wrapper that calls FetchTMasterLocation. Needed for RegisterTimer
@@ -137,7 +137,7 @@ class StMgr {
   // map of <component, streamid> to its consumers
   std::unordered_map<std::pair<sp_string, sp_string>, StreamConsumers*> stream_consumers_;
   // The graph of all the tasks
-  std::unordered_map<sp_string, std::unordered_set<sp_string>> tasks_mapping_;
+  std::unordered_map<sp_int32, std::unordered_set<sp_int32>> tasks_mapping_;
   // xor managers
   XorManager* xor_mgrs_;
   // Tuple Cache to optimize message building
