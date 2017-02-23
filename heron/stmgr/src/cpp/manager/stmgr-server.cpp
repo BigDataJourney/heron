@@ -234,6 +234,7 @@ void StMgrServer::HandleConnectionClose(Connection* _conn, NetworkErrorCode) {
   auto iiter = active_instances_.find(_conn);
   if (iiter != active_instances_.end()) {
     sp_int32 task_id = iiter->second;
+    LOG(INFO) << "Searching task_id = " << task_id << " in instance_info_";
     CHECK(instance_info_.find(task_id) != instance_info_.end());
     sp_string instance_id = instance_info_[task_id]->instance_->instance_id();
     LOG(INFO) << "Instance " << instance_id << " closed connection";
