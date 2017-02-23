@@ -391,17 +391,6 @@ void StMgrServer::HandleTupleSetMessage(Connection* _conn,
   release(_message);
 }
 
-sp_string StMgrServer::GetInstanceName(Connection* _connection) {
-  // Indicate which instance component had back pressure
-  auto itr = active_instances_.find(_connection);
-  if (itr != active_instances_.end()) {
-    sp_int32 task_id = itr->second;
-    const sp_string& instance_id = instance_info_[task_id]->instance_->instance_id();
-    return instance_id;
-  }
-  return "";
-}
-
 void StMgrServer::SendToInstance2(sp_int32 _task_id,
                                   sp_int32 _byte_size,
                                   const sp_string _type_name,
@@ -467,6 +456,17 @@ void StMgrServer::ComputeLocalSpouts(const proto::system::PhysicalPlan& _pplan) 
       iter->second->set_local_spout();
     }
   }
+}
+
+sp_string StMgrServer::GetInstanceName(Connection* _connection) {
+  // Indicate which instance component had back pressure
+  auto itr = active_instances_.find(_connection);
+  if (itr != active_instances_.end()) {
+    sp_int32 task_id = itr->second;
+    const sp_string& instance_id = instance_info_[task_id]->instance_->instance_id();
+    return instance_id;
+  }
+  return "";
 }
 
 void StMgrServer::StartBackPressureConnectionCb(Connection* _connection) {
