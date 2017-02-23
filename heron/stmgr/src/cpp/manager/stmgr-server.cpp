@@ -416,8 +416,7 @@ void StMgrServer::SendToInstance2(sp_int32 _task_id,
 
   if (drop) {
   } else {
-    sp_int32 task_id = active_instances_[iter->second->conn_];
-    instance_stats_[task_id] += _byte_size;
+    instance_stats_[_task_id] += _byte_size;
     SendMessage(iter->second->conn_, _byte_size, _type_name, _message);
   }
 }
@@ -445,8 +444,7 @@ void StMgrServer::SendToInstance2(sp_int32 _task_id,
       stmgr_server_metrics_->scope(METRIC_FAIL_TUPLES_TO_INSTANCES)
           ->incr_by(_message.control().fails_size());
     }
-    sp_int32 task_id = active_instances_[iter->second->conn_];
-    instance_stats_[task_id] += _message.ByteSize();
+    instance_stats_[_task_id] += _message.ByteSize();
     SendMessage(iter->second->conn_, _message);
   }
 }
