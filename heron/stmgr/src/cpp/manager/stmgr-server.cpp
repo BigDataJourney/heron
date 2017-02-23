@@ -221,7 +221,7 @@ void StMgrServer::HandleConnectionClose(Connection* _conn, NetworkErrorCode) {
   }
   // Note: Connections to other stream managers get handled in StmgrClient
   // Now attempt to stop the back pressure
-  AttemptStopBackPressureFromInstances(active_instances_[_conn]);
+  AttemptStopBackPressureFromInstances();
 
   // Now cleanup the data structures
   auto siter = rstmgrs_.find(_conn);
@@ -511,7 +511,7 @@ void StMgrServer::StopBackPressureConnectionCb(Connection* _connection) {
     back_pressure_metric_initiated_->Stop();
   }
   LOG(INFO) << "We don't observe back pressure now on sending data to instance " << instance_name;
-  AttemptStopBackPressureFromInstances(active_instances_[_connection]);
+  AttemptStopBackPressureFromInstances();
 }
 
 sp_int32 StMgrServer::FindInstanceByStats() {
@@ -553,7 +553,7 @@ void StMgrServer::StopBackPressureClientCb(const sp_string& _other_stmgr_id) {
                "stream manager "
             << _other_stmgr_id
             << " for task " << instance;
-  AttemptStopBackPressureFromInstances(instance);
+  AttemptStopBackPressureFromInstances();
 }
 
 void StMgrServer::HandleStartBackPressureMessage(Connection* _conn,
@@ -599,7 +599,7 @@ void StMgrServer::HandleStopBackPressureMessage(Connection* _conn,
   if (stmgrs_who_announced_back_pressure_.find(stmgr_id) !=
       stmgrs_who_announced_back_pressure_.end()) {
     stmgrs_who_announced_back_pressure_.erase(stmgr_id);
-    AttemptStopBackPressureFromInstances(_message->task_id());
+    AttemptStopBackPressureFromInstances();
   }
 
   release(_message);
@@ -637,21 +637,15 @@ void StMgrServer::StartBackPressureOnInstances(const sp_int32 _task_id) {
   }
 }
 
-void StMgrServer::AttemptStopBackPressureFromInstances(const sp_int32 _task_id) {
+void StMgrServer::AttemptStopBackPressureFromInstances() {
   if (instances_under_back_pressure_ && remote_ends_who_caused_back_pressure_.empty() &&
       stmgrs_who_announced_back_pressure_.empty()) {
     LOG(INFO) << "Starting reading from instances to relieve back pressure";
     instances_under_back_pressure_ = false;
 
-    auto upstream_instances = stmgr_->GetUpstreamInstances(_task_id);
-    for (auto i : upstream_instances)
-      LOG(INFO) << "Checking upstream tasks: " << i;
     // Remove backpressure from all pipes
     for (auto iiter = instance_info_.begin(); iiter != instance_info_.end(); ++iiter) {
       if (!iiter->second->conn_) continue;
-      if (upstream_instances.find(iiter->second->instance_->info().task_id())
-          == upstream_instances.end())
-        continue;
       if (iiter->second->conn_->isUnderBackPressure()) iiter->second->conn_->removeBackPressure();
     }
     back_pressure_metric_aggr_->Stop();

@@ -109,7 +109,7 @@ class StMgrServer : public Server {
   void StopBackPressureConnectionCb(Connection* _connection);
 
   // Can we free the back pressure on the instances?
-  void AttemptStopBackPressureFromInstances(const sp_int32 _task_id);
+  void AttemptStopBackPressureFromInstances();
   // Start back pressure on the instances
   void StartBackPressureOnInstances(const sp_int32 _task_id);
 
