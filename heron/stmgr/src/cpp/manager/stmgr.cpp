@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include <set>
+#include <unordered_set>
 #include "manager/stmgr-clientmgr.h"
 #include "manager/stmgr-server.h"
 #include "manager/stream-consumers.h"

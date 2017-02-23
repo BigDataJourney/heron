@@ -24,7 +24,6 @@
 #include <vector>
 #include <chrono>
 #include <typeindex>
-#include <set>
 #include <unordered_set>
 #include "proto/messages.h"
 #include "network/network.h"
