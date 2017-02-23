@@ -321,7 +321,8 @@ void StMgrServer::HandleRegisterInstanceRequest(REQID _reqid, Connection* _conn,
 
   if (instance_info_.find(task_id) != instance_info_.end() &&
       instance_info_[task_id]->conn_ != NULL) {
-    LOG(ERROR) << "Instance with the same task id already exists in our map " << instance_id;
+    LOG(ERROR) << "Instance " << instance_id << " with the same task id already exists in our map: "
+               << task_id;
 
     LOG(ERROR) << "Closing the old connection";
     instance_info_[task_id]->conn_->closeConnection();
@@ -332,7 +333,7 @@ void StMgrServer::HandleRegisterInstanceRequest(REQID _reqid, Connection* _conn,
     response.mutable_status()->set_status(proto::system::NOTOK);
     SendResponse(_reqid, _conn, response);
   } else {
-    LOG(INFO) << "New instance registered with us " << instance_id;
+    LOG(INFO) << "New instance registered with us " << instance_id << " with task_id: " << task_id;
     active_instances_[_conn] = task_id;
     if (instance_info_.find(task_id) == instance_info_.end()) {
       instance_info_[task_id] = new InstanceData(_request->release_instance());
