@@ -19,7 +19,6 @@
 
 #include <map>
 #include <set>
-#include <unordered_set>
 #include <vector>
 #include "network/network_error.h"
 #include "proto/messages.h"
@@ -58,9 +57,9 @@ class StMgrServer : public Server {
   void BroadcastNewPhysicalPlan(const proto::system::PhysicalPlan& _pplan);
 
   // Do back pressure
-  void StartBackPressureClientCb(const sp_string& _other_stmgr_id);
+  void StartBackPressureClientCb(const sp_string& _other_stmgr_id, sp_int32 task_id);
   // Relieve back pressure
-  void StopBackPressureClientCb(const sp_string& _other_stmgr_id);
+  void StopBackPressureClientCb(const sp_string& _other_stmgr_id, sp_int32 task_id);
 
   bool HaveAllInstancesConnectedToUs() const {
     return active_instances_.size() == expected_instances_.size();
@@ -68,8 +67,6 @@ class StMgrServer : public Server {
 
   // Gets all the Instance information
   void GetInstanceInfo(std::vector<proto::system::Instance*>& _return);
-
-  sp_int32 FindInstanceByStats();
 
   bool DidAnnounceBackPressure() { return !remote_ends_who_caused_back_pressure_.empty(); }
 
@@ -145,9 +142,6 @@ class StMgrServer : public Server {
   // Once populated, will not change
   typedef std::map<sp_int32, InstanceData*> TaskIdInstanceDataMap;
   TaskIdInstanceDataMap instance_info_;
-
-  // Counters for instance traffic
-  std::unordered_map<sp_int32, sp_int64> instance_stats_;
 
   // map of Instance_id/stmgrid to metric
   // Used for back pressure metrics

@@ -167,6 +167,8 @@ class StMgr {
   proto::system::HeronTupleSet2* tuple_set_from_other_stmgr_;
 
   sp_string heron_tuple_set_2_ = "heron.proto.system.HeronTupleSet2";
+
+  sp_int32 last_backpressure_starter_;
 };
 
 }  // namespace stmgr

@@ -18,6 +18,7 @@
 #define SRC_CPP_SVCS_STMGR_SRC_MANAGER_STMGR_CLIENTMGR_H_
 
 #include <map>
+#include <unordered_map>
 #include "proto/messages.h"
 #include "network/network.h"
 #include "basics/basics.h"
@@ -56,6 +57,7 @@ class StMgrClientMgr {
   void SendStopBackPressureToOtherStMgrs(const sp_int32 _task_id);
   bool DidAnnounceBackPressure();
   sp_int32 LastBackPressureStarter() { return last_backpressure_starter_; }
+  sp_int32 FindBusiestTaskOnStmgr(const sp_string& _stmgr_id);
 
  private:
   StMgrClient* CreateClient(const sp_string& _other_stmgr_id, const sp_string& _host_name,
@@ -74,6 +76,9 @@ class StMgrClientMgr {
   heron::common::MetricsMgrSt* metrics_manager_client_;
   heron::common::MultiCountMetric* stmgr_clientmgr_metrics_;
   sp_int32 last_backpressure_starter_;
+
+  // Counters for remote instance traffic
+  std::unordered_map<sp_string, std::unordered_map<sp_int32, sp_int64>> instance_stats_;
 };
 
 }  // namespace stmgr

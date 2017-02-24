@@ -405,7 +405,6 @@ void StMgrServer::SendToInstance2(sp_int32 _task_id,
 
   if (drop) {
   } else {
-    instance_stats_[_task_id] += _byte_size;
     SendMessage(iter->second->conn_, _byte_size, _type_name, _message);
   }
 }
@@ -433,7 +432,6 @@ void StMgrServer::SendToInstance2(sp_int32 _task_id,
       stmgr_server_metrics_->scope(METRIC_FAIL_TUPLES_TO_INSTANCES)
           ->incr_by(_message.control().fails_size());
     }
-    instance_stats_[_task_id] += _message.ByteSize();
     SendMessage(iter->second->conn_, _message);
   }
 }
@@ -514,45 +512,29 @@ void StMgrServer::StopBackPressureConnectionCb(Connection* _connection) {
   AttemptStopBackPressureFromInstances();
 }
 
-sp_int32 StMgrServer::FindInstanceByStats() {
-  sp_int32 instance;
-  sp_int64 max = 0;
-  for (auto iter = instance_stats_.begin(); iter!= instance_stats_.end(); iter++) {
-    if (iter->second > max) {
-      instance = iter->first;
-      max = iter->second;
-    }
-  }
-  return instance;
-}
-
-void StMgrServer::StartBackPressureClientCb(const sp_string& _other_stmgr_id) {
-  sp_int32 instance = FindInstanceByStats();
+void StMgrServer::StartBackPressureClientCb(const sp_string& _other_stmgr_id, sp_int32 task_id) {
   if (remote_ends_who_caused_back_pressure_.empty()) {
-    SendStartBackPressureToOtherStMgrs(instance);
+    SendStartBackPressureToOtherStMgrs(task_id);
     back_pressure_metric_initiated_->Start();
   }
   remote_ends_who_caused_back_pressure_.insert(_other_stmgr_id);
   LOG(INFO) << "We observe back pressure on sending data to remote stream manager "
-            << _other_stmgr_id
-            << " for task " << instance;
-  StartBackPressureOnInstances(instance);
+            << _other_stmgr_id << " for task " << task_id;
+  StartBackPressureOnInstances(task_id);
 }
 
-void StMgrServer::StopBackPressureClientCb(const sp_string& _other_stmgr_id) {
+void StMgrServer::StopBackPressureClientCb(const sp_string& _other_stmgr_id, sp_int32 task_id) {
   CHECK(remote_ends_who_caused_back_pressure_.find(_other_stmgr_id) !=
         remote_ends_who_caused_back_pressure_.end());
   remote_ends_who_caused_back_pressure_.erase(_other_stmgr_id);
 
-  sp_int32 instance = FindInstanceByStats();
   if (remote_ends_who_caused_back_pressure_.empty()) {
-    SendStopBackPressureToOtherStMgrs(instance);
+    SendStopBackPressureToOtherStMgrs(task_id);
     back_pressure_metric_initiated_->Stop();
   }
   LOG(INFO) << "We don't observe back pressure now on sending data to remote "
                "stream manager "
-            << _other_stmgr_id
-            << " for task " << instance;
+            << _other_stmgr_id << " for task " << task_id;
   AttemptStopBackPressureFromInstances();
 }
 

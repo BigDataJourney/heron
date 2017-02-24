@@ -691,12 +691,14 @@ void StMgr::CopyDataOutBound(sp_int32 _src_task_id, bool _local_spout,
 void StMgr::StartBackPressureOnServer(const sp_string& _other_stmgr_id) {
   // Ask the StMgrServer to stop consuming. The client does
   // not consume anything
-  server_->StartBackPressureClientCb(_other_stmgr_id);
+  sp_int32 task_id = clientmgr_->FindBusiestTaskOnStmgr(_other_stmgr_id);
+  server_->StartBackPressureClientCb(_other_stmgr_id, task_id);
+  last_backpressure_starter_ = task_id;
 }
 
 void StMgr::StopBackPressureOnServer(const sp_string& _other_stmgr_id) {
   // Call the StMgrServers removeBackPressure method
-  server_->StopBackPressureClientCb(_other_stmgr_id);
+  server_->StopBackPressureClientCb(_other_stmgr_id, last_backpressure_starter_);
 }
 
 void StMgr::SendStartBackPressureToOtherStMgrs(const sp_int32 _task_id) {
