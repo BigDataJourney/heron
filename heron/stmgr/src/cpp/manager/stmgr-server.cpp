@@ -620,6 +620,12 @@ void StMgrServer::StartBackPressureOnInstances(const sp_int32 _task_id) {
 }
 
 void StMgrServer::AttemptStopBackPressureFromInstances() {
+  LOG(INFO) << "instances_under_back_pressures_: " <<  instances_under_back_pressure_;
+  for (auto i : remote_ends_who_caused_back_pressure_)
+    LOG(INFO) << "remote_ends_who_caused_back_pressure_: " << i;
+  for (auto i : stmgrs_who_announced_back_pressure_)
+    LOG(INFO) << "stmgrs_who_announced_back_pressure_: " << i;
+
   if (instances_under_back_pressure_ && remote_ends_who_caused_back_pressure_.empty() &&
       stmgrs_who_announced_back_pressure_.empty()) {
     LOG(INFO) << "Starting reading from instances to relieve back pressure";
