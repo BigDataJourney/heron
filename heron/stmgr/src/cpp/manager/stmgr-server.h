@@ -24,6 +24,7 @@
 #include "proto/messages.h"
 #include "network/network.h"
 #include "basics/basics.h"
+#include "basics/spmultimap.h"
 
 namespace heron {
 namespace common {
@@ -107,9 +108,9 @@ class StMgrServer : public Server {
   void StopBackPressureConnectionCb(Connection* _connection);
 
   // Can we free the back pressure on the instances?
-  void AttemptStopBackPressureFromInstances();
+  void AttemptStopBackPressureFromInstances(const sp_int32 _task_id, bool initiated);
   // Start back pressure on the instances
-  void StartBackPressureOnInstances(const sp_int32 _task_id);
+  void StartBackPressureOnInstances(const sp_int32 _task_id, bool initiated);
 
   // Compute the LocalSpouts from Physical Plan
   void ComputeLocalSpouts(const proto::system::PhysicalPlan& _pplan);
@@ -155,7 +156,7 @@ class StMgrServer : public Server {
   // instances/stream mgrs causing back pressure
   std::set<sp_string> remote_ends_who_caused_back_pressure_;
   // stream managers that have announced back pressure
-  std::set<sp_string> stmgrs_who_announced_back_pressure_;
+  sp_multimap<sp_string, sp_int32> stmgrs_who_announced_back_pressure_;
 
   sp_string topology_name_;
   sp_string topology_id_;
@@ -169,7 +170,7 @@ class StMgrServer : public Server {
   heron::common::TimeSpentMetric* back_pressure_metric_aggr_;
   heron::common::TimeSpentMetric* back_pressure_metric_initiated_;
 
-  bool instances_under_back_pressure_;
+  sp_int32 instances_under_back_pressure_;
 };
 
 }  // namespace stmgr
